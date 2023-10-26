@@ -3,4 +3,7 @@ name = "clot"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
+# For text styling
+[dependencies.yansi]
+version = "=1.0.0-rc.1"
+default-features = false
