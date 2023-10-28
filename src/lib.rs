@@ -84,21 +84,53 @@
 //!     ~/my-files/something.text
 //! ```
 
-use std::env;
+use std::{env, ffi::OsStr, fmt};
 
-/// Command line argument option tree
-pub struct Clot<T = &'static str>(T);
+use yansi::Paint;
+
+use self::node::{Help, Node};
+
+mod node {
+    use super::*;
+
+    pub trait Node {
+        fn branch(&self, what: &OsStr, has_fields: bool, name: &OsStr) -> bool;
+    }
+
+    pub struct Help(pub(super) &'static str);
+
+    impl Node for Help {
+        fn branch(&self, what: &OsStr, has_fields: bool, name: &OsStr) -> bool {
+            let is_help = if has_fields {
+                matches!(what.to_str(), Some("--help"))
+            } else {
+                matches!(what.to_str(), Some("help" | "--help"))
+            };
+
+            if is_help {
+                println!("{}", self.0);
+                println!();
+                println!("{}: {}", "Usage".bold(), OsDisplay(&name));
+            }
+
+            is_help
+        }
+    }
+}
+
+/// Command line option (sub)tree
+pub struct Clot<T: Node = Help>(T);
 
 impl Clot {
     /// Create a new command line argument option tree.
     ///
     ///  - `help` text describing what the command does
     pub fn new(help: &'static str) -> Self {
-        Self(help)
+        Self(Help(help))
     }
 }
 
-impl<T> Clot<T> {
+impl<T: Node> Clot<T> {
     /// Create a new flag on the command.
     pub fn flag(self, flag: char) -> Self {
         if !flag.is_ascii_lowercase() {
@@ -114,8 +146,9 @@ impl<T> Clot<T> {
     }
 
     /// Create a new subcommand.
-    pub fn cmd<U>(
+    pub fn cmd<U: Node>(
         self,
+        name: &'static str,
         help: &'static str,
         f: impl FnOnce() -> Clot<U>,
     ) -> Self {
@@ -129,10 +162,31 @@ impl<T> Clot<T> {
 
     /// Validate the arguments and execute the selected subcommands.
     pub fn execute(self) {
-        let iter = env::args_os();
+        let mut iter = env::args_os();
+        let name = iter.next().expect("Failed to get command name");
+        let has_fields = false; // FIXME
 
         for arg in iter {
-            println!("{arg:?}");
+            if !self.0.branch(&arg, has_fields, &name) {
+                println!(
+                    "{}: Unexpected argument: `{}`",
+                    "Error".red().bold(),
+                    OsDisplay(&arg).bright().blue(),
+                );
+                println!();
+                println!(
+                    "       Try `{}` for more information.",
+                    format_args!("{} --help", OsDisplay(&name)).bright().blue(),
+                );
+            }
         }
+    }
+}
+
+struct OsDisplay<'a>(&'a OsStr);
+
+impl fmt::Display for OsDisplay<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0.to_string_lossy())
     }
 }
