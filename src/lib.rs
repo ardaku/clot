@@ -84,6 +84,8 @@
 //!     ~/my-files/something.text
 //! ```
 
+pub mod flags;
+
 use std::{env, ffi::OsStr, fmt};
 
 use yansi::Paint;
@@ -108,9 +110,8 @@ mod node {
             };
 
             if is_help {
-                println!("{}", self.0);
-                println!();
-                println!("{}: {}", "Usage".bold(), OsDisplay(&name));
+                println!("{}\n", self.0);
+                println!("{}: {}\n", "Usage".bold(), OsDisplay(&name));
             }
 
             is_help
@@ -169,13 +170,12 @@ impl<T: Node> Clot<T> {
         for arg in iter {
             if !self.0.branch(&arg, has_fields, &name) {
                 println!(
-                    "{}: Unexpected argument: `{}`",
+                    "{}: Unexpected argument: `{}`\n",
                     "Error".red().bold(),
                     OsDisplay(&arg).bright().blue(),
                 );
-                println!();
                 println!(
-                    "       Try `{}` for more information.",
+                    "       Try `{}` for more information.\n",
                     format_args!("{} --help", OsDisplay(&name)).bright().blue(),
                 );
             }
