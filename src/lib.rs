@@ -85,42 +85,19 @@
 //! ```
 
 pub mod flags;
+mod node;
 
 use std::{env, ffi::OsStr, fmt};
 
 use yansi::Paint;
 
-use self::node::{Help, Node};
+use self::node::{Help, Node as Seal};
 
-mod node {
-    use super::*;
-
-    pub trait Node {
-        fn branch(&self, what: &OsStr, has_fields: bool, name: &OsStr) -> bool;
-    }
-
-    pub struct Help(pub(super) &'static str);
-
-    impl Node for Help {
-        fn branch(&self, what: &OsStr, has_fields: bool, name: &OsStr) -> bool {
-            let is_help = if has_fields {
-                matches!(what.to_str(), Some("--help"))
-            } else {
-                matches!(what.to_str(), Some("help" | "--help"))
-            };
-
-            if is_help {
-                println!("{}\n", self.0);
-                println!("{}: {}\n", "Usage".bold(), OsDisplay(&name));
-            }
-
-            is_help
-        }
-    }
-}
+/// A sealed trait implemented on the generic of [`Clot`].
+pub trait Opts: Seal {}
 
 /// Command line option (sub)tree
-pub struct Clot<T: Node = Help>(T);
+pub struct Clot<T: Opts = Help>(T);
 
 impl Clot {
     /// Create a new command line argument option tree.
@@ -131,7 +108,7 @@ impl Clot {
     }
 }
 
-impl<T: Node> Clot<T> {
+impl<T: Opts> Clot<T> {
     /// Create a new flag on the command.
     pub fn flag(self, flag: char) -> Self {
         if !flag.is_ascii_lowercase() {
@@ -147,7 +124,7 @@ impl<T: Node> Clot<T> {
     }
 
     /// Create a new subcommand.
-    pub fn cmd<U: Node>(
+    pub fn cmd<U: Opts>(
         self,
         name: &'static str,
         help: &'static str,
