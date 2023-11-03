@@ -1,4 +1,4 @@
-//! Common flags.
+//! Common flags
 //!
 //! Follow these flag conventions as close as possible, changing as needed.
 

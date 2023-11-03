@@ -84,17 +84,21 @@
 //!     ~/my-files/something.text
 //! ```
 
+pub mod cmds;
 pub mod flags;
 mod node;
+pub mod params;
 
 use std::{env, ffi::OsStr, fmt};
 
 use yansi::Paint;
 
-use self::node::{Help, Node as Seal};
+use self::node::{Cmd, Help, Node as Seal};
 
 /// A sealed trait implemented on the generic of [`Clot`].
 pub trait Opts: Seal {}
+
+impl<T: Seal> Opts for T {}
 
 /// Command line option (sub)tree
 pub struct Clot<T: Opts = Help>(T);
@@ -103,14 +107,14 @@ impl Clot {
     /// Create a new command line argument option tree.
     ///
     ///  - `help` text describing what the command does
-    pub fn new(help: &'static str) -> Self {
-        Self(Help(help))
+    pub const fn new(help: &'static str) -> Self {
+        Self(Help::new(help))
     }
 }
 
 impl<T: Opts> Clot<T> {
     /// Create a new flag on the command.
-    pub fn flag(self, flag: char) -> Self {
+    pub const fn flag(self, flag: char) -> Self {
         if !flag.is_ascii_lowercase() {
             panic!("Flags must be ascii lowercase")
         }
@@ -119,7 +123,7 @@ impl<T: Opts> Clot<T> {
     }
 
     /// Create a new parameter on the command
-    pub fn param(self) -> Self {
+    pub const fn param(self, _name: &'static str) -> Self {
         self
     }
 
@@ -127,14 +131,13 @@ impl<T: Opts> Clot<T> {
     pub fn cmd<U: Opts>(
         self,
         name: &'static str,
-        help: &'static str,
-        f: impl FnOnce() -> Clot<U>,
-    ) -> Self {
-        self
+        _f: impl FnOnce() -> Clot<U>,
+    ) -> Clot<Cmd<T>> {
+        Clot(Cmd::new(self.0, name))
     }
 
     /// Create a new field on the subcommand
-    pub fn field(self) -> Self {
+    pub const fn field(self) -> Self {
         self
     }
 
@@ -145,6 +148,10 @@ impl<T: Opts> Clot<T> {
         let has_fields = false; // FIXME
 
         for arg in iter {
+            if node::maybe_help(&self.0, &arg, &name) {
+                break;
+            }
+
             if !self.0.branch(&arg, has_fields, &name) {
                 println!(
                     "{}: Unexpected argument: `{}`\n",
