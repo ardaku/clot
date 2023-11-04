@@ -72,22 +72,11 @@ impl Node for Help {
     fn help_params(&self, _name: &OsStr) {}
 
     fn help(&self) {
-        println!("{}", self.0);
+        println!("{}\n", self.0);
     }
 
     fn branch(&self, what: &OsStr, has_fields: bool, name: &OsStr) -> bool {
-        let is_help = if has_fields {
-            matches!(what.to_str(), Some("--help"))
-        } else {
-            matches!(what.to_str(), Some("help" | "--help"))
-        };
-
-        if is_help {
-            println!("{}\n", self.0);
-            println!("{}: {}\n", "Usage".bold(), OsDisplay(&name));
-        }
-
-        is_help
+        false
     }
 }
 
@@ -151,17 +140,7 @@ impl<T: Opts> Node for Cmd<T> {
             return true;
         }
 
-        let is_cmd = if has_fields {
-            matches!(what.to_str(), Some("--help"))
-        } else {
-            matches!(what.to_str(), Some("help" | "--help"))
-        };
-
-        if is_cmd {
-            println!("{}: {}\n", "Usage".bold(), OsDisplay(&name));
-        }
-
-        is_cmd
+        false
     }
 }
 
@@ -173,7 +152,12 @@ pub(super) fn maybe_help(node: &impl Node, what: &OsStr, name: &OsStr) -> bool {
     }
 
     node.help();
-    println!("{}: {} [OPTIONS] [COMMAND] [FIELDS]\n", "Usage".bold(), OsDisplay(&name));
+    println!(
+        "{}:\n   {} {}\n",
+        "Usage".bold(),
+        format_args!("{}", OsDisplay(&name)).bright().blue(),
+        "[OPTIONS] [COMMAND] [FIELDS]".green(),
+    );
 
     if has_fields {
         node.help_fields(name);

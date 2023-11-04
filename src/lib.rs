@@ -154,9 +154,9 @@ impl<T: Opts> Clot<T> {
 
             if !self.0.branch(&arg, has_fields, &name) {
                 println!(
-                    "{}: Unexpected argument: `{}`\n",
+                    "{}: Unexpected argument `{}`\n",
                     "Error".red().bold(),
-                    OsDisplay(&arg).bright().blue(),
+                    OsDisplay(&arg).bright().magenta(),
                 );
                 println!(
                     "       Try `{}` for more information.\n",
