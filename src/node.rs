@@ -57,10 +57,13 @@ impl Node for Help {
 
     fn help_cmds(&self, has_fields: bool) {
         if has_fields {
-            println!("  {}\n", "--help".cyan().bright());
+            println!(
+                "   {}\n      Display this help message.",
+                "--help".cyan().bright(),
+            );
         } else {
             println!(
-                "  {}, {}\n",
+                "   {}, {}\n      Display this help message.",
                 "help".cyan().bright(),
                 "--help".cyan().bright(),
             );
@@ -109,16 +112,18 @@ impl<T: Opts> Node for Cmd<T> {
     }
 
     fn help_cmds(&self, has_fields: bool) {
+        self.prev.help_cmds(has_fields);
+
         if has_fields {
             println!(
-                "   {}\n      Display this help message.",
-                "--help".cyan().bright(),
+                "   {}\n      FIXME.",
+                format_args!("--{}", self.name).cyan().bright(),
             );
         } else {
             println!(
-                "   {}, {}\n      Display this help message.",
-                "help".cyan().bright(),
-                "--help".cyan().bright(),
+                "   {}, {}\n      FIXME.",
+                self.name.cyan().bright(),
+                format_args!("--{}", self.name).cyan().bright(),
             );
         }
     }
