@@ -90,7 +90,11 @@ mod node;
 mod os_str;
 pub mod params;
 
-use std::{env, ffi::OsStr, fmt};
+use std::{
+    env,
+    ffi::{OsStr, OsString},
+    fmt,
+};
 
 use yansi::Paint;
 
@@ -100,11 +104,23 @@ pub use self::os_str::FromOsStr;
 type CmdFn = fn(&dyn Opts);
 
 /// A sealed trait implemented on the generic of [`Clot`].
-pub trait Opts: Seal {}
+pub trait Opts: Seal {
+    fn flag(&self, _c: char) -> bool {
+        false
+    }
+
+    fn param(&self, _p: &str) -> Option<OsString> {
+        None
+    }
+
+    fn field(&self, _f: usize) -> Option<OsString> {
+        None
+    }
+}
 
 impl<T: Seal> Opts for T {}
 
-/// Command line option (sub)tree
+/// Command line option tree / subtree
 pub struct Clot<T: Opts = Help> {
     opts: T,
     cmd_fn: Option<CmdFn>,
@@ -114,6 +130,8 @@ impl Clot {
     /// Create a new command line argument option tree.
     ///
     ///  - `help` text describing what the command does
+    ///  - `f` function to execute when no subcommands are provided; use `None`
+    ///    to show help text when no subcommands are provided
     pub fn new(help: &'static str, f: impl Into<Option<CmdFn>>) -> Self {
         Self {
             opts: Help::new(help),
