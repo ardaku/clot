@@ -87,6 +87,7 @@
 pub mod cmds;
 pub mod flags;
 mod node;
+mod os_str;
 pub mod params;
 
 use std::{env, ffi::OsStr, fmt};
@@ -94,6 +95,9 @@ use std::{env, ffi::OsStr, fmt};
 use yansi::Paint;
 
 use self::node::{Cmd, Help, Node as Seal};
+pub use self::os_str::FromOsStr;
+
+type CmdFn = fn(&dyn Opts);
 
 /// A sealed trait implemented on the generic of [`Clot`].
 pub trait Opts: Seal {}
@@ -101,14 +105,20 @@ pub trait Opts: Seal {}
 impl<T: Seal> Opts for T {}
 
 /// Command line option (sub)tree
-pub struct Clot<T: Opts = Help>(T);
+pub struct Clot<T: Opts = Help> {
+    opts: T,
+    cmd_fn: Option<CmdFn>,
+}
 
 impl Clot {
     /// Create a new command line argument option tree.
     ///
     ///  - `help` text describing what the command does
-    pub const fn new(help: &'static str) -> Self {
-        Self(Help::new(help))
+    pub fn new(help: &'static str, f: impl Into<Option<CmdFn>>) -> Self {
+        Self {
+            opts: Help::new(help),
+            cmd_fn: f.into(),
+        }
     }
 }
 
@@ -133,7 +143,10 @@ impl<T: Opts> Clot<T> {
         name: &'static str,
         _f: impl FnOnce() -> Clot<U>,
     ) -> Clot<Cmd<T>> {
-        Clot(Cmd::new(self.0, name))
+        Clot {
+            opts: Cmd::new(self.opts, name),
+            cmd_fn: self.cmd_fn,
+        }
     }
 
     /// Create a new field on the subcommand
@@ -148,11 +161,11 @@ impl<T: Opts> Clot<T> {
         let has_fields = false; // FIXME
 
         for arg in iter {
-            if node::maybe_help(&self.0, &arg, &name) {
+            if node::maybe_help(&self.opts, &arg, &name) {
                 break;
             }
 
-            if !self.0.branch(&arg, has_fields, &name) {
+            if !self.opts.branch(&arg, has_fields, &name) {
                 println!(
                     "{}: Unexpected argument `{}`\n",
                     "Error".red().bold(),

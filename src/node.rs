@@ -78,7 +78,7 @@ impl Node for Help {
         println!("{}\n", self.0);
     }
 
-    fn branch(&self, what: &OsStr, has_fields: bool, name: &OsStr) -> bool {
+    fn branch(&self, _what: &OsStr, _has_fields: bool, _name: &OsStr) -> bool {
         false
     }
 }
@@ -159,9 +159,9 @@ pub(super) fn maybe_help(node: &impl Node, what: &OsStr, name: &OsStr) -> bool {
     node.help();
     println!(
         "{}:\n   {} {}\n",
-        "Usage".bold(),
+        "Usage".bold().bright().white(),
         format_args!("{}", OsDisplay(&name)).bright().blue(),
-        "[OPTIONS] [COMMAND] [FIELDS]".green(),
+        "[OPTIONS] [COMMAND] [FIELDS]".bright().cyan(),
     );
 
     if has_fields {
@@ -176,7 +176,7 @@ pub(super) fn maybe_help(node: &impl Node, what: &OsStr, name: &OsStr) -> bool {
         node.help_params(name);
     }
 
-    println!("{}", "Commands:".bold().green().bright());
+    println!("{}", "Commands:".bold().bright().white());
     node.help_cmds(has_fields);
     println!();
 

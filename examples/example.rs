@@ -1,9 +1,11 @@
 use clot::{Clot, Opts};
 
 fn test() -> Clot<impl Opts> {
-    Clot::new("Test command")
+    Clot::new("Test command", None)
 }
 
 fn main() {
-    Clot::new("Example program").cmd("test", test).execute()
+    Clot::new("Example program", None)
+        .cmd("test", test)
+        .execute()
 }
