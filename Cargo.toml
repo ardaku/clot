@@ -2,6 +2,9 @@
 name = "clot"
 version = "0.1.0"
 edition = "2021"
+description = """
+An opinionated mini argument parsing library that doesn't use macros
+"""
 
 # For text styling
 [dependencies.yansi]
