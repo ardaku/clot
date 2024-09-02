@@ -1,13 +1,13 @@
 use clot::{Clot, Opts};
 
-fn run_test(_opts: &dyn Opts) {
-    println!("Running the test");
+fn run_hello(_opts: &dyn Opts) {
+    println!("Hello, world!");
 }
 
-fn test() -> Clot<impl Opts> {
-    Clot::new("Test command").run(run_test)
+fn hello() -> Clot<impl Opts> {
+    Clot::new("Print hello world").run(run_hello)
 }
 
 fn main() {
-    Clot::new("Example program").cmd("test", test).execute()
+    Clot::new("Example program").cmd("hello", hello).execute()
 }

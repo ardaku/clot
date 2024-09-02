@@ -59,10 +59,9 @@
 //! No more than 3 words should be used, and 3 words should only if absolutely
 //! necessary.
 //!
-//! Commands can start with `--` if there are possible positional arguments,
+//! Commands must start with `--` if there are optional or required fields,
 //! otherwise they should begin with an alphabetic character.  `--help` is
-//! special in that it's required regardless of if there are positional
-//! arguments.
+//! special in that it's required regardless of if there are fields.
 //!
 //! Lists of commands are also possible.
 //!

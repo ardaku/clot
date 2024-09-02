@@ -26,8 +26,8 @@ pub trait Node {
     /// Print help for parameters on this node and all previous nodes.
     fn help_params(&self, name: &OsStr);
 
-    /// Print help text for this command
-    fn help_text(&self);
+    /// Get help text for this command
+    fn get_help_text(&self) -> &'static str;
 
     fn branch(
         &self,
@@ -64,12 +64,12 @@ impl Node for Help {
     fn help_cmds(&self, has_fields: bool) {
         if has_fields {
             println!(
-                "   {}\n      Display this help message.",
+                "   {}\n      Display this help message",
                 "--help".cyan().bright(),
             );
         } else {
             println!(
-                "   {}, {}\n      Display this help message.",
+                "   {}, {}\n      Display this help message",
                 "help".cyan().bright(),
                 "--help".cyan().bright(),
             );
@@ -80,8 +80,8 @@ impl Node for Help {
 
     fn help_params(&self, _name: &OsStr) {}
 
-    fn help_text(&self) {
-        println!("{}\n", self.0);
+    fn get_help_text(&self) -> &'static str {
+        self.0
     }
 
     fn branch(
@@ -127,16 +127,18 @@ impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
     }
 
     fn help_cmds(&self, has_fields: bool) {
+        let help = (self.f.take().unwrap())().opts.get_help_text();
+
         self.prev.help_cmds(has_fields);
 
         if has_fields {
             println!(
-                "   {}\n      FIXME.",
+                "   {}\n      {help}",
                 format_args!("--{}", self.name).cyan().bright(),
             );
         } else {
             println!(
-                "   {}, {}\n      FIXME.",
+                "   {}, {}\n      {help}",
                 self.name.cyan().bright(),
                 format_args!("--{}", self.name).cyan().bright(),
             );
@@ -151,8 +153,8 @@ impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
         self.prev.help_params(name)
     }
 
-    fn help_text(&self) {
-        self.prev.help_text();
+    fn get_help_text(&self) -> &'static str {
+        self.prev.get_help_text()
     }
 
     fn branch(
@@ -182,9 +184,10 @@ impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
 }
 
 pub(super) fn help(node: &impl Node, name: &OsStr, has_fields: bool) {
-    node.help_text();
+    let help_text = node.get_help_text();
+
     println!(
-        "{}:\n   {} {}\n",
+        "{help_text}\n\n{}:\n   {} {}\n",
         "Usage".bold().bright().white(),
         format_args!("{}", OsDisplay(&name)).bright().blue(),
         "[OPTIONS] [COMMAND] [FIELDS]".bright().cyan(),
