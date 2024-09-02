@@ -1,13 +1,22 @@
 //! An opinonated argument parsing library that doesn't use macros.
 //!
+//! # Getting Started
+//!
+//! ```rust
+#![doc = include_str!("../examples/example.rs")]
+//! ```
+//!
 //! # Rules
+//!
+//! Clot is opinionated on how you structure CLI arguments.  This is how they
+//! work:
 //!
 //! There are exactly four types of arguments:
 //!  
-//!  - [Flags](#flags)
-//!  - [Parameters](#parameters)
 //!  - [Commands](#commands)
 //!  - [Fields](#fields-1)
+//!  - [Parameters](#parameters)
+//!  - [Flags](#flags)
 //!
 //! All command line programs must accept the command
 //!
@@ -17,18 +26,35 @@
 //!
 //!  - `help` — Alias to `--help`
 //!
-//! ## Flags
+//! ## Commands
 //!
-//! Flags are single character lowercase ascii command line arguments that start
-//! with `-`.  Multiple can be combined together.  Each flag may appear at most
-//! once.
+//! Commands are a named subtree of CLI options.  Command names should be
+//! lowercase alphabetic ASCII without numbers, using `-` for word separation.
+//! No more than 3 words should be used, and 3 words should only if absolutely
+//! necessary.
 //!
-//! ### Examples
+//! Commands must start with `--` if there are optional or required fields,
+//! otherwise they must begin with an alphabetic character.  `--help` is special
+//! in that it's required regardless of if there are fields.
+//!
+//! Lists of commands are also possible.
 //!
 //! ```console
-//! -v      Verbose
-//! -f      Force
-//! -vf     Verbose and force
+//! --help
+//! analyze
+//! [exec <STMT>]
+//!     exec 'a = 0' exec 'a += 1'
+//! ```
+//!
+//! ## Fields
+//!
+//! Fields are positional arguments passed in to the program.
+//!
+//! ```console
+//! <INT>   Integer
+//!     42
+//! <PATH>  Path - Only time when UTF-8 compliance is optional, depending on OS
+//!     ~/my-files/something.text
 //! ```
 //!
 //! ## Parameters
@@ -52,35 +78,18 @@
 //!     --append 'book' --append 'car'
 //! ```
 //!
-//! ## Commands
+//! ## Flags
 //!
-//! Commands are a named subtree of CLI options.  Command names should be
-//! lowercase alphabetic ASCII without numbers, using `-` for word separation.
-//! No more than 3 words should be used, and 3 words should only if absolutely
-//! necessary.
+//! Flags are single character lowercase ascii command line arguments that start
+//! with `-`.  Multiple can be combined together.  Each flag may appear at most
+//! once.
 //!
-//! Commands must start with `--` if there are optional or required fields,
-//! otherwise they should begin with an alphabetic character.  `--help` is
-//! special in that it's required regardless of if there are fields.
-//!
-//! Lists of commands are also possible.
+//! ### Examples
 //!
 //! ```console
-//! --help
-//! analyze
-//! [exec <STMT>]
-//!     exec 'a = 0' exec 'a += 1'
-//! ```
-//!
-//! ## Fields
-//!
-//! Fields are positional arguments passed in to the program.
-//!
-//! ```console
-//! <INT>   Integer
-//!     42
-//! <PATH>  Path - Only time when UTF-8 compliance is optional, depending on OS
-//!     ~/my-files/something.text
+//! -v      Verbose
+//! -f      Force
+//! -vf     Verbose and force
 //! ```
 
 pub mod cmds;
