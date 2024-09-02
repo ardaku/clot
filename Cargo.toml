@@ -18,6 +18,7 @@ include = [
     "/LICENSE_MIT",
     "/README.md",
     "/src/*",
+    "/examples/*",
 ]
 rust-version = "1.70"
 
