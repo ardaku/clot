@@ -1,8 +1,8 @@
-use std::ffi::OsStr;
+use std::{cell::Cell, env::ArgsOs, ffi::OsStr, iter::Peekable};
 
 use yansi::Paint;
 
-use crate::{Opts, OsDisplay};
+use crate::{Branch, Clot, Opts, OsDisplay};
 
 pub trait Node {
     /// Return true if this node or any previous node contains fields.
@@ -27,9 +27,15 @@ pub trait Node {
     fn help_params(&self, name: &OsStr);
 
     /// Print help text for this command
-    fn help(&self);
+    fn help_text(&self);
 
-    fn branch(&self, what: &OsStr, has_fields: bool, name: &OsStr) -> bool;
+    fn branch(
+        &self,
+        what: &OsStr,
+        has_fields: bool,
+        name: &OsStr,
+        args: Peekable<ArgsOs>,
+    ) -> Branch;
 }
 
 pub struct Help(pub(super) &'static str);
@@ -74,27 +80,36 @@ impl Node for Help {
 
     fn help_params(&self, _name: &OsStr) {}
 
-    fn help(&self) {
+    fn help_text(&self) {
         println!("{}\n", self.0);
     }
 
-    fn branch(&self, _what: &OsStr, _has_fields: bool, _name: &OsStr) -> bool {
-        false
+    fn branch(
+        &self,
+        _what: &OsStr,
+        _has_fields: bool,
+        _name: &OsStr,
+        args: Peekable<ArgsOs>,
+    ) -> Branch {
+        Branch::Help(args)
     }
 }
 
-pub struct Cmd<T: Opts> {
+pub struct Cmd<T: Opts, U: Node, F: FnOnce() -> Clot<U>> {
     prev: T,
     name: &'static str,
+    f: Cell<Option<F>>,
 }
 
-impl<T: Opts> Cmd<T> {
-    pub(super) const fn new(prev: T, name: &'static str) -> Self {
-        Self { prev, name }
+impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Cmd<T, U, F> {
+    pub(super) const fn new(prev: T, name: &'static str, f: F) -> Self {
+        let f = Cell::new(Some(f));
+
+        Self { prev, name, f }
     }
 }
 
-impl<T: Opts> Node for Cmd<T> {
+impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
     fn has_fields(&self) -> bool {
         self.prev.has_fields()
     }
@@ -136,27 +151,38 @@ impl<T: Opts> Node for Cmd<T> {
         self.prev.help_params(name)
     }
 
-    fn help(&self) {
-        self.prev.help();
+    fn help_text(&self) {
+        self.prev.help_text();
     }
 
-    fn branch(&self, what: &OsStr, has_fields: bool, name: &OsStr) -> bool {
-        if self.prev.branch(what, has_fields, name) {
-            return true;
-        }
+    fn branch(
+        &self,
+        what: &OsStr,
+        has_fields: bool,
+        name: &OsStr,
+        args: Peekable<ArgsOs>,
+    ) -> Branch {
+        let args = match self.prev.branch(what, has_fields, name, args) {
+            Branch::Skip(args) | Branch::Help(args) => args,
+            Branch::Done => return Branch::Done,
+        };
 
-        false
+        let Some(what) = what.to_str() else {
+            return Branch::Help(args);
+        };
+
+        if what.strip_prefix("--").unwrap_or(what) == self.name {
+            (self.f.take().unwrap())()
+                .execute_with(what.to_string().into(), args);
+            Branch::Done
+        } else {
+            Branch::Help(args)
+        }
     }
 }
 
-pub(super) fn maybe_help(node: &impl Node, what: &OsStr, name: &OsStr) -> bool {
-    let has_fields = node.has_fields();
-
-    if !is_help(what, has_fields) {
-        return false;
-    }
-
-    node.help();
+pub(super) fn help(node: &impl Node, name: &OsStr, has_fields: bool) {
+    node.help_text();
     println!(
         "{}:\n   {} {}\n",
         "Usage".bold().bright().white(),
@@ -179,6 +205,16 @@ pub(super) fn maybe_help(node: &impl Node, what: &OsStr, name: &OsStr) -> bool {
     println!("{}", "Commands:".bold().bright().white());
     node.help_cmds(has_fields);
     println!();
+}
+
+pub(super) fn maybe_help(node: &impl Node, what: &OsStr, name: &OsStr) -> bool {
+    let has_fields = node.has_fields();
+
+    if !is_help(what, has_fields) {
+        return false;
+    }
+
+    help(node, name, has_fields);
 
     true
 }

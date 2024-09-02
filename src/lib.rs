@@ -87,19 +87,25 @@
 pub mod cmds;
 pub mod flags;
 mod node;
-mod os_str;
 pub mod params;
 
 use std::{
-    env,
+    env::{self, ArgsOs},
     ffi::{OsStr, OsString},
     fmt,
+    iter::Peekable,
 };
 
 use yansi::Paint;
 
 use self::node::{Cmd, Help, Node as Seal};
-pub use self::os_str::FromOsStr;
+
+#[doc(hidden)]
+pub enum Branch {
+    Skip(Peekable<ArgsOs>),
+    Help(Peekable<ArgsOs>),
+    Done,
+}
 
 type CmdFn = fn(&dyn Opts);
 
@@ -130,17 +136,23 @@ impl Clot {
     /// Create a new command line argument option tree.
     ///
     ///  - `help` text describing what the command does
-    ///  - `f` function to execute when no subcommands are provided; use `None`
-    ///    to show help text when no subcommands are provided
-    pub fn new(help: &'static str, f: impl Into<Option<CmdFn>>) -> Self {
+    pub fn new(help: &'static str) -> Self {
         Self {
             opts: Help::new(help),
-            cmd_fn: f.into(),
+            cmd_fn: None,
         }
     }
 }
 
 impl<T: Opts> Clot<T> {
+    /// Add a callback to execute in place of help text when no subcomands are
+    /// provided.
+    pub fn run(mut self, f: CmdFn) -> Self {
+        self.cmd_fn = Some(f);
+
+        self
+    }
+
     /// Create a new flag on the command.
     pub const fn flag(self, flag: char) -> Self {
         if !flag.is_ascii_lowercase() {
@@ -156,13 +168,13 @@ impl<T: Opts> Clot<T> {
     }
 
     /// Create a new subcommand.
-    pub fn cmd<U: Opts>(
+    pub fn cmd<U: Opts, F: FnOnce() -> Clot<U>>(
         self,
         name: &'static str,
-        _f: impl FnOnce() -> Clot<U>,
-    ) -> Clot<Cmd<T>> {
+        f: F,
+    ) -> Clot<Cmd<T, U, F>> {
         Clot {
-            opts: Cmd::new(self.opts, name),
+            opts: Cmd::new(self.opts, name, f),
             cmd_fn: self.cmd_fn,
         }
     }
@@ -174,26 +186,50 @@ impl<T: Opts> Clot<T> {
 
     /// Validate the arguments and execute the selected subcommands.
     pub fn execute(self) {
-        let mut iter = env::args_os();
+        let mut iter = env::args_os().peekable();
         let name = iter.next().expect("Failed to get command name");
-        let has_fields = false; // FIXME
 
-        for arg in iter {
+        self.execute_with(name, iter);
+    }
+
+    /// Execution of a specific subcommand
+    fn execute_with(self, name: OsString, mut args: Peekable<ArgsOs>) {
+        let has_fields = self.opts.has_fields();
+
+        // If no arguments are provided to subcommand without command fn,
+        // then display help
+        if args.peek().is_none() && self.cmd_fn.is_none() {
+            node::help(&self.opts, &name, has_fields);
+        }
+
+        while let Some(arg) = args.next() {
+            // If passed `--help` or `help` when no fields, then display help.
             if node::maybe_help(&self.opts, &arg, &name) {
                 break;
             }
 
-            if !self.opts.branch(&arg, has_fields, &name) {
-                println!(
-                    "{}: Unexpected argument `{}`\n",
-                    "Error".red().bold(),
-                    OsDisplay(&arg).bright().magenta(),
-                );
-                println!(
-                    "       Try `{}` for more information.\n",
-                    format_args!("{} --help", OsDisplay(&name)).bright().blue(),
-                );
+            args = match self.opts.branch(&arg, has_fields, &name, args) {
+                Branch::Skip(args) => args,
+                Branch::Help(_args) => {
+                    println!(
+                        "{}: Unexpected argument `{}`\n",
+                        "Error".red().bold(),
+                        OsDisplay(&arg).bright().magenta(),
+                    );
+                    println!(
+                        "       Try `{}` for more information.\n",
+                        format_args!("{} --help", OsDisplay(&name))
+                            .bright()
+                            .blue(),
+                    );
+                    break;
+                }
+                Branch::Done => return,
             }
+        }
+
+        if let Some(cmd_fn) = self.cmd_fn {
+            (cmd_fn)(&self.opts)
         }
     }
 }
