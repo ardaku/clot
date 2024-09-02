@@ -187,12 +187,22 @@ impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
 
 pub(super) fn help(node: &impl Node, name: &OsStr, has_fields: bool) {
     let help_text = node.get_help_text();
+    let options = if has_fields {
+        format!(
+            "{} {}\n",
+            format_args!("{}", OsDisplay(&name)).bright().blue(),
+            "[OPTIONS] [FIELDS] [OPTIONS]".bright().cyan(),
+        )
+    } else {
+        String::new()
+    };
 
     println!(
-        "{help_text}\n\n{}:\n   {} {}\n",
+        "{help_text}\n\n{}:\n{}   {} {}\n",
         "Usage".bold().bright().white(),
+        options,
         format_args!("{}", OsDisplay(&name)).bright().blue(),
-        "[OPTIONS] [COMMAND] [FIELDS]".bright().cyan(),
+        "[COMMAND] ...".bright().cyan(),
     );
 
     if has_fields {
@@ -212,14 +222,21 @@ pub(super) fn help(node: &impl Node, name: &OsStr, has_fields: bool) {
     println!();
 }
 
-pub(super) fn maybe_help(node: &impl Node, what: &OsStr, name: &OsStr) -> bool {
+pub(super) fn maybe_help(
+    node: &impl Node,
+    what: &OsStr,
+    name: &OsStr,
+    dont_print: bool,
+) -> bool {
     let has_fields = node.has_fields();
 
     if !is_help(what, has_fields) {
         return false;
     }
 
-    help(node, name, has_fields);
+    if !dont_print {
+        help(node, name, has_fields);
+    }
 
     true
 }

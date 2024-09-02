@@ -220,24 +220,19 @@ impl<T: Opts> Clot<T> {
 
         while let Some(arg) = args.next() {
             // If passed `--help` or `help` when no fields, then display help.
-            if node::maybe_help(&self.opts, &arg, &name) {
+            if node::maybe_help(&self.opts, &arg, &name, args.peek().is_some())
+            {
+                if let Some(arg) = args.next() {
+                    unexpected(name, arg);
+                }
+
                 return;
             }
 
             args = match self.opts.branch(&arg, has_fields, &name, args) {
                 Branch::Skip(args) => args,
                 Branch::Help(_args) => {
-                    println!(
-                        "{}: Unexpected argument `{}`\n",
-                        "Error".red().bold(),
-                        OsDisplay(&arg).bright().magenta(),
-                    );
-                    println!(
-                        "       Try `{}` for more information.\n",
-                        format_args!("{} --help", OsDisplay(&name))
-                            .bright()
-                            .blue(),
-                    );
+                    unexpected(name, arg);
                     break;
                 }
                 Branch::Done => return,
@@ -256,4 +251,16 @@ impl fmt::Display for OsDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.0.to_string_lossy())
     }
+}
+
+fn unexpected(name: OsString, arg: OsString) {
+    println!(
+        "{}: Unexpected argument `{}`\n",
+        "Error".red().bold(),
+        OsDisplay(&arg).bright().magenta(),
+    );
+    println!(
+        "       Try `{}` for more information.\n",
+        format_args!("{} --help", OsDisplay(&name)).bright().blue(),
+    );
 }
