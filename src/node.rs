@@ -137,11 +137,7 @@ impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
                 format_args!("--{}", self.name).cyan().bright(),
             );
         } else {
-            println!(
-                "   {}, {}\n      {help}",
-                self.name.cyan().bright(),
-                format_args!("--{}", self.name).cyan().bright(),
-            );
+            println!("   {}\n      {help}", self.name.cyan().bright());
         }
     }
 
@@ -173,9 +169,15 @@ impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
             return Branch::Help(args);
         };
 
-        if what.strip_prefix("--").unwrap_or(what) == self.name {
+        let what = if has_fields {
+            what.strip_prefix("--")
+        } else {
+            Some(what)
+        };
+
+        if what == Some(self.name) {
             (self.f.take().unwrap())()
-                .execute_with(what.to_string().into(), args);
+                .execute_with(what.unwrap().to_string().into(), args);
             Branch::Done
         } else {
             Branch::Help(args)

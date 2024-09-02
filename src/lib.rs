@@ -5,7 +5,7 @@
 //! ```rust
 #![doc = include_str!("../examples/example.rs")]
 //! ```
-//!
+//! 
 //! # Rules
 //!
 //! Clot is opinionated on how you structure CLI arguments.  This is how they
@@ -38,25 +38,23 @@
 //! in that it's required regardless of if there are fields.
 //!
 //! Lists of commands are also possible.
-//!
 //! ```console
 //! --help
 //! analyze
 //! [exec <STMT>]
 //!     exec 'a = 0' exec 'a += 1'
 //! ```
-//!
+//! 
 //! ## Fields
 //!
 //! Fields are positional arguments passed in to the program.
-//!
 //! ```console
 //! <INT>   Integer
 //!     42
 //! <PATH>  Path - Only time when UTF-8 compliance is optional, depending on OS
 //!     ~/my-files/something.text
 //! ```
-//!
+//! 
 //! ## Parameters
 //!
 //! Parameters are named arguments that can be passed in.  They must be a single
@@ -64,7 +62,6 @@
 //! defined by defining the parameter multiple times.
 //!
 //! ## Examples
-//!
 //! ```console
 //! --verbosity {0…3}   Set verbosity level
 //!     --verbosity 0
@@ -77,7 +74,7 @@
 //! [--append value]    Append a value
 //!     --append 'book' --append 'car'
 //! ```
-//!
+//! 
 //! ## Flags
 //!
 //! Flags are single character lowercase ascii command line arguments that start
@@ -85,7 +82,6 @@
 //! once.
 //!
 //! ### Examples
-//!
 //! ```console
 //! -v      Verbose
 //! -f      Force
@@ -157,7 +153,41 @@ impl<T: Opts> Clot<T> {
     /// provided.
     pub fn run(mut self, f: CmdFn) -> Self {
         self.cmd_fn = Some(f);
+        self
+    }
 
+    /// Create a new subcommand.
+    ///
+    /// # Panics
+    ///
+    ///  - If command `name` character is invalid (not lowercase ascii or `-`)
+    ///  - If command `name` has more than two `-`
+    ///  - If command `name` starts or ends with a `-`
+    pub fn cmd<U: Opts, F: FnOnce() -> Clot<U>>(
+        self,
+        name: &'static str,
+        f: F,
+    ) -> Clot<Cmd<T, U, F>> {
+        let invalid_char = |c: char| (!c.is_ascii_lowercase()) && c != '-';
+
+        assert!(!name.contains(invalid_char));
+        assert!(name.split_terminator('-').count() <= 3);
+        assert!(!name.starts_with('-'));
+        assert!(!name.ends_with('-'));
+
+        Clot {
+            opts: Cmd::new(self.opts, name, f),
+            cmd_fn: self.cmd_fn,
+        }
+    }
+
+    /// Create a new field on the subcommand
+    pub const fn field(self) -> Self {
+        self
+    }
+
+    /// Create a new parameter on the command
+    pub const fn param(self, _name: &'static str) -> Self {
         self
     }
 
@@ -167,28 +197,6 @@ impl<T: Opts> Clot<T> {
             panic!("Flags must be ascii lowercase")
         }
 
-        self
-    }
-
-    /// Create a new parameter on the command
-    pub const fn param(self, _name: &'static str) -> Self {
-        self
-    }
-
-    /// Create a new subcommand.
-    pub fn cmd<U: Opts, F: FnOnce() -> Clot<U>>(
-        self,
-        name: &'static str,
-        f: F,
-    ) -> Clot<Cmd<T, U, F>> {
-        Clot {
-            opts: Cmd::new(self.opts, name, f),
-            cmd_fn: self.cmd_fn,
-        }
-    }
-
-    /// Create a new field on the subcommand
-    pub const fn field(self) -> Self {
         self
     }
 
@@ -213,7 +221,7 @@ impl<T: Opts> Clot<T> {
         while let Some(arg) = args.next() {
             // If passed `--help` or `help` when no fields, then display help.
             if node::maybe_help(&self.opts, &arg, &name) {
-                break;
+                return;
             }
 
             args = match self.opts.branch(&arg, has_fields, &name, args) {
