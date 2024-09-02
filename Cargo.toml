@@ -5,6 +5,21 @@ edition = "2021"
 description = """
 An opinionated mini argument parsing library that doesn't use macros
 """
+license = "Apache-2.0 OR BSL-1.0 OR MIT"
+documentation = "https://docs.rs/clot"
+homepage = "https://github.com/ardaku/clot/releases"
+repository = "https://github.com/ardaku/clot"
+readme = "README.md"
+keywords = ["argument", "cli", "arg", "parser", "parse"]
+categories = ["command-line-interface", "wasm"]
+include = [
+    "/LICENSE_APACHE",
+    "/LICENSE_BOOST",
+    "/LICENSE_MIT",
+    "/README.md",
+    "/src/*",
+]
+rust-version = "1.70"
 
 # For text styling
 [dependencies.yansi]
