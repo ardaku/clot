@@ -20,7 +20,7 @@ include = [
     "/src/*",
     "/examples/*",
 ]
-rust-version = "1.70"
+rust-version = "1.85"
 
 # For text styling
 [dependencies.yansi]

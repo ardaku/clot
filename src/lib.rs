@@ -90,8 +90,10 @@
 
 pub mod cmds;
 pub mod flags;
+mod from_os_string;
 mod node;
 pub mod params;
+mod specializer;
 
 use std::{
     env::{self, ArgsOs},
@@ -103,6 +105,7 @@ use std::{
 use yansi::Paint;
 
 use self::node::{Cmd, Help, Node as Seal};
+pub use from_os_string::{FromOsString, FromStrError};
 
 #[doc(hidden)]
 pub enum Branch {

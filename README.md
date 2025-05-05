@@ -6,13 +6,13 @@ An opinionated mini argument parsing library that doesn't use macros.
 
 ## MSRV
 
-The current MSRV is Rust 1.70.
+The current MSRV is Rust 1.85.
 
-MSRV is updated according to the [Ardaku MSRV guidelines].
+Any future MSRV updates will follow the [Ardaku MSRV guidelines].
 
 ## License
 
-Copyright © 2024 The Clot Contributors.
+Copyright © 2024-2025 The Clot Contributors.
 
 Licensed under any of
  - Apache License, Version 2.0, ([LICENSE\_APACHE] or

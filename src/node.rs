@@ -190,7 +190,7 @@ pub(super) fn help(node: &impl Node, name: &OsStr, has_fields: bool) {
     let options = if has_fields {
         format!(
             "{} {}\n",
-            format_args!("{}", OsDisplay(&name)).bright().blue(),
+            format_args!("{}", OsDisplay(name)).bright().blue(),
             "[OPTIONS] [FIELDS] [OPTIONS]".bright().cyan(),
         )
     } else {
@@ -201,7 +201,7 @@ pub(super) fn help(node: &impl Node, name: &OsStr, has_fields: bool) {
         "{help_text}\n\n{}:\n{}   {} {}\n",
         "Usage".bold().bright().white(),
         options,
-        format_args!("{}", OsDisplay(&name)).bright().blue(),
+        format_args!("{}", OsDisplay(name)).bright().blue(),
         "[COMMAND] ...".bright().cyan(),
     );
 
