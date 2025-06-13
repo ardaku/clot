@@ -177,7 +177,7 @@ impl<T: Tree, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
 
         if what == Some(self.name) {
             (self.f.take().unwrap())()
-                .execute_with(what.unwrap().to_string().into(), args);
+                .parse_with(what.unwrap().to_string().into(), args);
             Branch::Done
         } else {
             Branch::Help(args)

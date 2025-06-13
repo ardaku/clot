@@ -208,15 +208,15 @@ impl<T: Tree> Clot<T> {
     }
 
     /// Validate the arguments and execute the selected subcommands.
-    pub fn execute(self) {
+    pub fn parse(self) {
         let mut iter = env::args_os().peekable();
         let name = iter.next().expect("Failed to get command name");
 
-        self.execute_with(name, iter);
+        self.parse_with(name, iter);
     }
 
     /// Execution of a specific subcommand
-    fn execute_with(self, name: OsString, mut args: Peekable<ArgsOs>) {
+    fn parse_with(self, name: OsString, mut args: Peekable<ArgsOs>) {
         let has_fields = self.opts.has_fields();
 
         // If no arguments are provided to subcommand without command fn,

@@ -4,7 +4,7 @@ fn main() {
     Clot::new("Example program")
         .cmd("hello", hello)
         .cmd("add", add)
-        .execute()
+        .parse()
 }
 
 fn add() -> Clot<impl Tree> {
