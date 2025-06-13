@@ -8,7 +8,7 @@ use std::{
     string::FromUtf8Error,
 };
 
-use crate::specializer::Specializer;
+use specializer::Specializer;
 
 /// Value that can be parsed from an [`OsString`]
 ///
@@ -37,7 +37,7 @@ where
         type SpecializedResult<T> =
             Result<T, FromStrError<<T as FromStr>::Err>>;
 
-        Specializer::new_fallback(|s: OsString| -> SpecializedResult<Self> {
+        Specializer::new(s, |s: OsString| -> SpecializedResult<Self> {
             <&str>::try_from(s.deref())
                 .map_err(FromStrError::Utf8)?
                 .parse()
@@ -52,7 +52,7 @@ where
         .specialize_return(|s| -> SpecializedResult<CString> {
             Ok(CString::new(s.into_encoded_bytes()).unwrap())
         })
-        .run(s)
+        .run()
     }
 }
 

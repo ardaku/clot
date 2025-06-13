@@ -26,3 +26,8 @@ rust-version = "1.85"
 [dependencies.yansi]
 version = "1.0.1"
 default-features = false
+
+# For ergonomic specialization
+[dependencies.specializer]
+version = "1.0.0"
+default-features = false
