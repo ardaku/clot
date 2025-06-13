@@ -159,7 +159,10 @@ impl<T: Tree> Clot<T> {
     /// Add a callback to execute in place of help text when no subcomands are
     /// provided.
     pub fn run(mut self, f: CmdFn) -> Self {
-        self.cmd_fn = Some(f);
+        if self.cmd_fn.replace(f).is_some() {
+            panic!("Can only call `run()` once")
+        }
+
         self
     }
 
