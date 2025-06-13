@@ -29,7 +29,7 @@ pub trait FromOsString: Sized {
 
 impl<T> FromOsString for T
 where
-    T: Sized + FromStr + 'static,
+    T: FromStr + 'static,
 {
     type Err = FromStrError<<T as FromStr>::Err>;
 

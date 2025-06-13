@@ -1,4 +1,4 @@
-use clot::{Clot, Opts};
+use clot::{Clot, Opts, Tree};
 
 fn main() {
     Clot::new("Example program")
@@ -7,11 +7,11 @@ fn main() {
         .execute()
 }
 
-fn add() -> Clot<impl Opts> {
+fn add() -> Clot<impl Tree> {
     Clot::new("Add two numbers").run(run_add)
 }
 
-fn hello() -> Clot<impl Opts> {
+fn hello() -> Clot<impl Tree> {
     Clot::new("Print hello world").run(run_hello)
 }
 

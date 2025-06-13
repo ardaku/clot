@@ -2,7 +2,7 @@ use std::{cell::Cell, env::ArgsOs, ffi::OsStr, iter::Peekable};
 
 use yansi::Paint;
 
-use crate::{Branch, Clot, Opts, OsDisplay};
+use crate::{Branch, Clot, OsDisplay, Tree};
 
 pub trait Node {
     /// Return true if this node or any previous node contains fields.
@@ -95,13 +95,13 @@ impl Node for Help {
     }
 }
 
-pub struct Cmd<T: Opts, U: Node, F: FnOnce() -> Clot<U>> {
+pub struct Cmd<T: Tree, U: Node, F: FnOnce() -> Clot<U>> {
     prev: T,
     name: &'static str,
     f: Cell<Option<F>>,
 }
 
-impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Cmd<T, U, F> {
+impl<T: Tree, U: Node, F: FnOnce() -> Clot<U>> Cmd<T, U, F> {
     pub(super) const fn new(prev: T, name: &'static str, f: F) -> Self {
         let f = Cell::new(Some(f));
 
@@ -109,7 +109,7 @@ impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Cmd<T, U, F> {
     }
 }
 
-impl<T: Opts, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
+impl<T: Tree, U: Node, F: FnOnce() -> Clot<U>> Node for Cmd<T, U, F> {
     fn has_fields(&self) -> bool {
         self.prev.has_fields()
     }

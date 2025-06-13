@@ -115,7 +115,12 @@ pub enum Branch {
 
 type CmdFn = fn(&dyn Opts);
 
-/// A sealed trait implemented on the generic of [`Clot`].
+/// A sealed trait implemented on the generic of [`Clot`]
+pub trait Tree: Seal {}
+
+impl<T: Seal> Tree for T {}
+
+/// A sealed trait for inspecting options
 pub trait Opts: Seal {
     fn flag(&self, _c: char) -> bool {
         false
@@ -130,10 +135,10 @@ pub trait Opts: Seal {
     }
 }
 
-impl<T: Seal> Opts for T {}
+impl<T: Tree> Opts for T {}
 
 /// Command line option tree / subtree
-pub struct Clot<T: Opts = Help> {
+pub struct Clot<T: Tree = Help> {
     opts: T,
     cmd_fn: Option<CmdFn>,
 }
@@ -150,7 +155,7 @@ impl Clot {
     }
 }
 
-impl<T: Opts> Clot<T> {
+impl<T: Tree> Clot<T> {
     /// Add a callback to execute in place of help text when no subcomands are
     /// provided.
     pub fn run(mut self, f: CmdFn) -> Self {
@@ -165,7 +170,7 @@ impl<T: Opts> Clot<T> {
     ///  - If command `name` character is invalid (not lowercase ascii or `-`)
     ///  - If command `name` has more than two `-`
     ///  - If command `name` starts or ends with a `-`
-    pub fn cmd<U: Opts, F: FnOnce() -> Clot<U>>(
+    pub fn cmd<U: Tree, F: FnOnce() -> Clot<U>>(
         self,
         name: &'static str,
         f: F,
