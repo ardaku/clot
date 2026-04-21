@@ -5,12 +5,12 @@
 //!  - Is it a closed interval? `{PARAM_NAME} Integer[MIN, MAX]`
 //!  - Is it an open interval? `<OPTIONAL_PARAM_NAME> Number(MIN, MAX)`
 //!  - Is it from a defined set?
-//!   ```
-//!   {PARAM_NAME}
-//!   | A
-//!   | B
-//!   | C
-//!   ```
+//!     ```text
+//!     {PARAM_NAME}
+//!     | A
+//!     | B
+//!     | C
+//!     ```
 //!  - Is it a list? `<PARAM_NAME, …>`
 //!  - Is it a list of at least one? `{PARAM_NAME, …}`
 
