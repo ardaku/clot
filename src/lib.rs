@@ -5,7 +5,7 @@
 //! ```rust
 #![doc = include_str!("../examples/example.rs")]
 //! ```
-//! 
+//!
 //! # Rules
 //!
 //! Clot is opinionated on how you structure CLI arguments.  This is how they
@@ -44,7 +44,7 @@
 //! [exec <STMT>]
 //!     exec 'a = 0' exec 'a += 1'
 //! ```
-//! 
+//!
 //! ## Fields
 //!
 //! Fields are positional arguments passed in to the program.
@@ -54,7 +54,7 @@
 //! <PATH>  Path - Only time when UTF-8 compliance is optional, depending on OS
 //!     ~/my-files/something.text
 //! ```
-//! 
+//!
 //! ## Parameters
 //!
 //! Parameters are named arguments that can be passed in.  They must be a single
@@ -74,7 +74,7 @@
 //! [--append value]    Append a value
 //!     --append 'book' --append 'car'
 //! ```
-//! 
+//!
 //! ## Flags
 //!
 //! Flags are single character lowercase ascii command line arguments that start
