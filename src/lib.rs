@@ -88,6 +88,7 @@
 //! -vf     Verbose and force
 //! ```
 
+mod class;
 pub mod cmds;
 pub mod flags;
 mod from_os_string;

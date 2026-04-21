@@ -3,11 +3,36 @@
 version = 4
 
 [[package]]
+name = "as_repr"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "381a901cc2970c95a9bafd1f07dd1c5e800d182f5eba14664832ac61b652a5f4"
+dependencies = [
+ "as_repr-core",
+]
+
+[[package]]
+name = "as_repr-core"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05ceb46f436ddbacc46ed733019e77911ac2061b9c43f0e547465eb4369d4d8c"
+
+[[package]]
 name = "clot"
 version = "0.1.0"
 dependencies = [
+ "ranch",
  "specializer",
  "yansi",
+]
+
+[[package]]
+name = "ranch"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "266df32a64ba546dbb0e60c642773d983ceecb70883008018e27fd8e9a60606b"
+dependencies = [
+ "as_repr",
 ]
 
 [[package]]

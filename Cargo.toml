@@ -22,12 +22,18 @@ include = [
 ]
 rust-version = "1.85"
 
-# For text styling
-[dependencies.yansi]
-version = "1.0.1"
+# For ranged integer parsing
+[dependencies.ranch]
+version = "0.6.0"
 default-features = false
+#features = ["full"]
 
 # For ergonomic specialization
 [dependencies.specializer]
 version = "1.0.0"
+default-features = false
+
+# For text styling
+[dependencies.yansi]
+version = "1.0.1"
 default-features = false
