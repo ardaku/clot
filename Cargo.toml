@@ -20,7 +20,7 @@ include = [
     "/src/*",
     "/examples/*",
 ]
-rust-version = "1.85"
+rust-version = "1.91"
 
 # For ranged integer parsing
 [dependencies.ranch]
