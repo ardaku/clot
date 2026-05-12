@@ -30,7 +30,7 @@ default-features = false
 
 # For ergonomic specialization
 [dependencies.specializer]
-version = "1.0.0"
+version = "1.0.1"
 default-features = false
 
 # For text styling
